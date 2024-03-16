@@ -41,6 +41,7 @@
 ---@field editor_only_render_when_focused? boolean
 ---@field tmux_show_only_in_active_window? boolean
 ---@field hijack_file_patterns? string[]
+---@field hijack_hook? fun(img: Image)
 
 ---@class BackendFeatures
 ---@field crop boolean

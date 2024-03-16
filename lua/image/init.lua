@@ -299,8 +299,10 @@ api.setup = function(options)
         local buf = event.buf
         local win = vim.api.nvim_get_current_win()
         local path = vim.api.nvim_buf_get_name(buf)
-	print("hijack!")
-        api.hijack_buffer(path, win, buf)
+
+        local img = api.hijack_buffer(path, win, buf)
+        if not img then return end
+        options.hijack_hook(img)
       end,
     })
   end
@@ -358,7 +360,7 @@ api.hijack_buffer = function(path, win, buf, options)
   local img = api.from_file(path, opts)
 
   if img then
-    img:render()
+    img:render(geometry)
     state.hijacked_win_buf_images[key] = img
   end
 
@@ -367,6 +369,7 @@ end
 
 ---@param path string
 ---@param options? ImageOptions
+---@return Image|nil
 api.from_file = function(path, options)
   guard_setup()
   return image.from_file(path, options, state)
