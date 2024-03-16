@@ -306,15 +306,15 @@ api.setup = function(options)
         local term_size = utils.term.get_size()
         local starting_height = img.image_height
         local starting_width = img.image_width
+        ---@type ImageGeometry
+        local internal_geometry = { height = img.rendered_geometry.height }
         ---@param delta number
         local function resize(delta)
           img:clear()
-          -- even this small is probably not clear, but for small files it does create them at this size initially
           -- TODO: There might be a slight scaling error at very small sizes but i'm not sure
-          img.image_height = math.max(img.image_height + term_size.cell_height * delta, term_size.cell_height)
-          img.image_width = img.image_height / starting_height * starting_width
+          internal_geometry.height = math.max(1, internal_geometry.height + delta)
           -- TODO: figure out a better zoom behaviour when panned, i can't think of a decent fixed point.
-          img:render(nil, true, true)
+          img:render(internal_geometry, true, true)
         end
         ---@param x number
         ---@param y number
@@ -322,7 +322,7 @@ api.setup = function(options)
           img:clear()
           img.geometry.x = img.geometry.x + x
           img.geometry.y = img.geometry.y + y
-          img:render(nil, true, true)
+          img:render(internal_geometry, true, true)
         end
         local function defaults()
           vim.api.nvim_buf_create_user_command(buf, "ImageSmaller", function()
@@ -351,7 +351,7 @@ api.setup = function(options)
           defaults()
           return
         end
-        options.hijack_hook(img, buf, defaults, resize, move)
+        options.hijack_hook(img, buf, defaults, resize, move, internal_geometry)
       end,
     })
   end

@@ -51,7 +51,7 @@ function Image:render(geometry, no_size_checks, never_bail)
   if vim.fn.getcmdwintype() ~= "" then return end
 
   -- utils.debug(("---------------- %s ----------------"):format(self.id))
-	local was_rendered = renderer.render(self, no_size_checks, never_bail)
+  local was_rendered = renderer.render(self, no_size_checks, never_bail)
 
   -- utils.debug(
   --   ("[image] render: %s, success: %s x: %s, y: %s, width: %s, height: %s"):format(
