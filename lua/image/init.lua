@@ -301,30 +301,38 @@ api.setup = function(options)
         local path = vim.api.nvim_buf_get_name(buf)
 
         local img = api.hijack_buffer(path, win, buf)
+        -- if we don't have an image we don't call the hook, this may not be optimal but i think it simplifies the user side and i don't see a use case it breaks.
         if not img then return end
+        local term_size = utils.term.get_size()
+        local starting_height = img.image_height
+        local starting_width = img.image_width
+        local function resize(delta)
+          img:clear()
+          -- even this small is probably not clear, but for small files it does create them at this size initially
+          img.image_height = math.max(img.image_height + term_size.cell_height * delta, term_size.cell_height)
+          -- TODO: There might be a slight scaling error at very small sizes but i'm not sure
+          img.image_width = img.image_height / starting_height * starting_width
+          img:render(nil, true)
+        end
         local function defaults()
-          local term_size = utils.term.get_size()
-          local starting_height = img.image_height
-          local starting_width = img.image_width
-          local function resize(delta)
-            img:clear()
-            img.image_height = math.max(img.image_height + term_size.cell_height * delta, term_size.cell_height)
-            img.image_width = img.image_height / starting_height * starting_width
-            img:render()
-          end
-
           vim.api.nvim_buf_create_user_command(buf, "ImageSmaller", function()
             resize(-1)
           end, { bang = true })
           vim.api.nvim_buf_create_user_command(buf, "ImageBigger", function()
             resize(1)
           end, { bang = true })
+          vim.api.nvim_buf_create_user_command(buf, "ImageReset", function()
+            img:clear()
+            img.image_width = starting_width
+            img.image_height = starting_height
+            img:render()
+          end, { bang = true })
         end
         if not options.hijack_hook then
           defaults()
           return
         end
-        options.hijack_hook(img, defaults)
+        options.hijack_hook(img, buf, defaults, resize)
       end,
     })
   end

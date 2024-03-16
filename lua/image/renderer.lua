@@ -11,7 +11,8 @@ local cache = {
 }
 
 ---@param image Image
-local render = function(image)
+---@param no_size_checks? boolean
+local render = function(image, no_size_checks)
   local state = image.global_state
   local term_size = utils.term.get_size()
   local image_rows = math.floor(image.image_height / term_size.cell_height)
@@ -55,13 +56,16 @@ local render = function(image)
   end
 
   -- rendered size cannot be larger than the image itself
-  width = math.min(width, image_columns)
-  height = math.min(height, image_rows)
+  if no_size_checks then
+    width = math.min(width, image_columns)
+    height = math.min(height, image_rows)
+  end
 
   -- screen max width/height
-  width = math.min(width, term_size.screen_cols)
-  height = math.min(height, term_size.screen_rows)
-
+  if no_size_checks then
+    width = math.min(width, term_size.screen_cols)
+    height = math.min(height, term_size.screen_rows)
+  end
   -- utils.debug(("(1) x: %d, y: %d, width: %d, height: %d y_offset: %d"):format(original_x, original_y, width, height, y_offset))
 
   if image.window ~= nil then
@@ -120,15 +124,19 @@ local render = function(image)
     if utils.offsets.get_border_shape(window.id).left > 0 then bounds.right = bounds.right + 1 end
 
     -- global max window width/height percentage
-    if type(state.options.max_width_window_percentage) == "number" then
-      width =
-        math.min(width, math.floor((window.width - global_offsets.x) * state.options.max_width_window_percentage / 100))
-    end
-    if type(state.options.max_height_window_percentage) == "number" then
-      height = math.min(
-        height,
-        math.floor((window.height - global_offsets.y) * state.options.max_height_window_percentage / 100)
-      )
+    if no_size_checks then
+      if type(state.options.max_width_window_percentage) == "number" then
+        width = math.min(
+          width,
+          math.floor((window.width - global_offsets.x) * state.options.max_width_window_percentage / 100)
+        )
+      end
+      if type(state.options.max_height_window_percentage) == "number" then
+        height = math.min(
+          height,
+          math.floor((window.height - global_offsets.y) * state.options.max_height_window_percentage / 100)
+        )
+      end
     end
   end
 

@@ -41,7 +41,7 @@
 ---@field editor_only_render_when_focused? boolean
 ---@field tmux_show_only_in_active_window? boolean
 ---@field hijack_file_patterns? string[]
----@field hijack_hook? fun(img: Image, defaults: fun())
+---@field hijack_hook? fun(img: Image, buf: number, defaults: fun(), resize: fun(delta))
 
 ---@class BackendFeatures
 ---@field crop boolean
@@ -107,7 +107,7 @@
 ---@field resize_hash? string
 ---@field crop_hash? string
 ---@field global_state State
----@field render fun(self: Image, geometry?: ImageGeometry)
+---@field render fun(self: Image, geometry?: ImageGeometry, no_size_checks?: boolean)
 ---@field clear fun(self: Image, shallow?: boolean)
 ---@field move fun(self: Image, x: number, y: number)
 ---@field brightness fun(self: Image, brightness: number)
