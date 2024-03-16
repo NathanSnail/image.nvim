@@ -303,21 +303,21 @@ api.setup = function(options)
         local img = api.hijack_buffer(path, win, buf)
         if not img then return end
         local function defaults()
-          print("setting defaults")
-          -- not sure if this is actually ever nil but types claim it is
-          local stored_height = img.rendered_geometry.height or 1
+          local term_size = utils.term.get_size()
+          local starting_height = img.image_height
+          local starting_width = img.image_width
           local function resize(delta)
             img:clear()
-            stored_height = stored_height + delta
-            print(stored_height)
-            img:render({ height = stored_height })
+            img.image_height = math.max(img.image_height + term_size.cell_height * delta, term_size.cell_height)
+            img.image_width = img.image_height / starting_height * starting_width
+            img:render()
           end
 
-          vim.api.nvim_buf_create_user_command(buf, "ImageBigger", function()
-            resize(1)
-          end, { bang = true })
           vim.api.nvim_buf_create_user_command(buf, "ImageSmaller", function()
             resize(-1)
+          end, { bang = true })
+          vim.api.nvim_buf_create_user_command(buf, "ImageBigger", function()
+            resize(1)
           end, { bang = true })
         end
         if not options.hijack_hook then
@@ -382,7 +382,7 @@ api.hijack_buffer = function(path, win, buf, options)
   local img = api.from_file(path, opts)
 
   if img then
-    img:render(geometry)
+    img:render()
     state.hijacked_win_buf_images[key] = img
   end
 
