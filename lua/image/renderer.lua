@@ -12,7 +12,8 @@ local cache = {
 
 ---@param image Image
 ---@param no_size_checks? boolean
-local render = function(image, no_size_checks)
+---@param never_bail? boolean
+local render = function(image, no_size_checks, never_bail)
   local state = image.global_state
   local term_size = utils.term.get_size()
   local image_rows = math.floor(image.image_height / term_size.cell_height)
@@ -56,13 +57,13 @@ local render = function(image, no_size_checks)
   end
 
   -- rendered size cannot be larger than the image itself
-  if no_size_checks then
+  if not no_size_checks then
     width = math.min(width, image_columns)
     height = math.min(height, image_rows)
   end
 
   -- screen max width/height
-  if no_size_checks then
+  if not no_size_checks then
     width = math.min(width, term_size.screen_cols)
     height = math.min(height, term_size.screen_rows)
   end
@@ -124,7 +125,7 @@ local render = function(image, no_size_checks)
     if utils.offsets.get_border_shape(window.id).left > 0 then bounds.right = bounds.right + 1 end
 
     -- global max window width/height percentage
-    if no_size_checks then
+    if not no_size_checks then
       if type(state.options.max_width_window_percentage) == "number" then
         width = math.min(
           width,
@@ -169,7 +170,7 @@ local render = function(image, no_size_checks)
     -- bail if out of bounds
     if original_y + 1 < topline or original_y > botline then
       -- utils.debug("prevent rendering 1", image.id)
-      prevent_rendering = true
+      prevent_rendering = not never_bail
     end
 
     -- folds

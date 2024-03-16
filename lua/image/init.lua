@@ -306,13 +306,23 @@ api.setup = function(options)
         local term_size = utils.term.get_size()
         local starting_height = img.image_height
         local starting_width = img.image_width
+        ---@param delta number
         local function resize(delta)
           img:clear()
           -- even this small is probably not clear, but for small files it does create them at this size initially
-          img.image_height = math.max(img.image_height + term_size.cell_height * delta, term_size.cell_height)
           -- TODO: There might be a slight scaling error at very small sizes but i'm not sure
+          img.image_height = math.max(img.image_height + term_size.cell_height * delta, term_size.cell_height)
           img.image_width = img.image_height / starting_height * starting_width
-          img:render(nil, true)
+          -- TODO: figure out a better zoom behaviour when panned, i can't think of a decent fixed point.
+          img:render(nil, true, true)
+        end
+        ---@param x number
+        ---@param y number
+        local function move(x, y)
+          img:clear()
+          img.geometry.x = img.geometry.x + x
+          img.geometry.y = img.geometry.y + y
+          img:render(nil, true, true)
         end
         local function defaults()
           vim.api.nvim_buf_create_user_command(buf, "ImageSmaller", function()
@@ -327,12 +337,21 @@ api.setup = function(options)
             img.image_height = starting_height
             img:render()
           end, { bang = true })
+          local function directional(name, x, y)
+            vim.api.nvim_buf_create_user_command(buf, "Image" .. name, function()
+              move(x, y)
+            end, { bang = true })
+          end
+          directional("Left", -1, 0)
+          directional("Right", 1, 0)
+          directional("Up", 0, -1)
+          directional("Down", 0, 1)
         end
         if not options.hijack_hook then
           defaults()
           return
         end
-        options.hijack_hook(img, buf, defaults, resize)
+        options.hijack_hook(img, buf, defaults, resize, move)
       end,
     })
   end

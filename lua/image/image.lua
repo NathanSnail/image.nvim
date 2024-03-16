@@ -41,7 +41,9 @@ function Image:has_extmark_moved()
 end
 
 ---@param geometry? ImageGeometry
-function Image:render(geometry)
+---@param no_size_checks? boolean
+---@param never_bail? boolean
+function Image:render(geometry, no_size_checks, never_bail)
   if geometry then self.geometry = vim.tbl_deep_extend("force", self.geometry, geometry) end
 
   -- don't render if we are in the conmmand-line-window, in this case previously rendered images can
@@ -49,7 +51,7 @@ function Image:render(geometry)
   if vim.fn.getcmdwintype() ~= "" then return end
 
   -- utils.debug(("---------------- %s ----------------"):format(self.id))
-  local was_rendered = renderer.render(self)
+	local was_rendered = renderer.render(self, no_size_checks, never_bail)
 
   -- utils.debug(
   --   ("[image] render: %s, success: %s x: %s, y: %s, width: %s, height: %s"):format(
