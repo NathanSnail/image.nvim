@@ -302,7 +302,29 @@ api.setup = function(options)
 
         local img = api.hijack_buffer(path, win, buf)
         if not img then return end
-        options.hijack_hook(img)
+        local function defaults()
+          print("setting defaults")
+          -- not sure if this is actually ever nil but types claim it is
+          local stored_height = img.rendered_geometry.height or 1
+          local function resize(delta)
+            img:clear()
+            stored_height = stored_height + delta
+            print(stored_height)
+            img:render({ height = stored_height })
+          end
+
+          vim.api.nvim_buf_create_user_command(buf, "ImageBigger", function()
+            resize(1)
+          end, { bang = true })
+          vim.api.nvim_buf_create_user_command(buf, "ImageSmaller", function()
+            resize(-1)
+          end, { bang = true })
+        end
+        if not options.hijack_hook then
+          defaults()
+          return
+        end
+        options.hijack_hook(img, defaults)
       end,
     })
   end
