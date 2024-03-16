@@ -299,7 +299,7 @@ api.setup = function(options)
         local buf = event.buf
         local win = vim.api.nvim_get_current_win()
         local path = vim.api.nvim_buf_get_name(buf)
-
+	print("hijack!")
         api.hijack_buffer(path, win, buf)
       end,
     })
