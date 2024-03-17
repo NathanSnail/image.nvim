@@ -315,12 +315,16 @@ local render = function(image, no_size_checks, never_bail)
 
   -- compute resize
   local resize_hash = ("%d-%d"):format(pixel_width, pixel_height)
-  -- NOTE: This might resize more than needed, but image_width > pixel_width doesn't working for scaling via geometry, it should get cached so not be too bad.
-  needs_resize = image.image_width > pixel_width
-    or pixel_width > math.ceil(image.image_width / term_size.cell_width) * term_size.cell_width
-    or image.image_height > pixel_height
-    or pixel_height > math.ceil(image.image_height / term_size.cell_height) * term_size.cell_height
-
+  -- Geometry is supposed to not resize on scale up, but if we don't apply size checks (to have larger than normally valid images) we don't want this behaviour.
+  if no_size_checks then
+    -- This might resize more than needed, but image_width > pixel_width doesn't working for scaling via geometry, it should get cached so not be too bad.
+    needs_resize = image.image_width > pixel_width
+      or pixel_width > math.ceil(image.image_width / term_size.cell_width) * term_size.cell_width
+      or image.image_height > pixel_height
+      or pixel_height > math.ceil(image.image_height / term_size.cell_height) * term_size.cell_height
+  else
+    needs_resize = image.image_width > pixel_width
+  end
   -- TODO make this non-blocking
 
   -- resize
